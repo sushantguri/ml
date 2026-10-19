@@ -1,0 +1,53 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+env/
+venv/
+ENV/
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Large datasets and raw downloads (keep structure, exclude large files)
+data/raw/*.txt
+data/raw/*.csv
+data/raw/*.gz
+!data/samples/*.csv
+
+# Streamlit config/cache
+.streamlit/
+
+# Saved large model weights if needed (keep directory structure)
+# models/*.joblib

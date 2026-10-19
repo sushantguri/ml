@@ -1,0 +1,162 @@
+# Configuration for Adaptive Cyber-Physical Security Anomaly Detection System
+
+project:
+  name: "Adaptive Cyber-Physical Security — AI-Powered Network Anomaly Detection"
+  version: "1.0.0"
+  description: "Unsupervised Network Anomaly Detection using Isolation Forest and PCA on NSL-KDD"
+
+dataset:
+  name: "NSL-KDD"
+  source: "Canadian Institute for Cybersecurity (CIC), University of New Brunswick (UNB)"
+  license: "Public research benchmark dataset"
+  urls:
+    train_20percent: "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTrain+_20Percent.txt"
+    train_full: "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTrain+.txt"
+    test: "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTest%2B.txt"
+    test_21: "https://raw.githubusercontent.com/defcom17/NSL_KDD/master/KDDTest-21.txt"
+  paths:
+    raw_dir: "data/raw"
+    processed_dir: "data/processed"
+    samples_dir: "data/samples"
+    train_file: "data/raw/KDDTrain+_20Percent.txt"
+    test_file: "data/raw/KDDTest+.txt"
+
+schema:
+  columns:
+    - duration
+    - protocol_type
+    - service
+    - flag
+    - src_bytes
+    - dst_bytes
+    - land
+    - wrong_fragment
+    - urgent
+    - hot
+    - num_failed_logins
+    - logged_in
+    - num_compromised
+    - root_shell
+    - su_attempted
+    - num_root
+    - num_file_creations
+    - num_shells
+    - num_access_files
+    - num_outbound_cmds
+    - is_host_login
+    - is_guest_login
+    - count
+    - srv_count
+    - serror_rate
+    - srv_serror_rate
+    - rerror_rate
+    - srv_rerror_rate
+    - same_srv_rate
+    - diff_srv_rate
+    - srv_diff_host_rate
+    - dst_host_count
+    - dst_host_srv_count
+    - dst_host_same_srv_rate
+    - dst_host_diff_srv_rate
+    - dst_host_same_src_port_rate
+    - dst_host_srv_diff_host_rate
+    - dst_host_serror_rate
+    - dst_host_srv_serror_rate
+    - dst_host_rerror_rate
+    - dst_host_srv_rerror_rate
+    - label
+    - difficulty_level
+
+  categorical_features:
+    - protocol_type
+    - service
+    - flag
+
+  binary_features:
+    - land
+    - logged_in
+    - root_shell
+    - su_attempted
+    - is_host_login
+    - is_guest_login
+
+  target_column: "label"
+  metadata_columns:
+    - difficulty_level
+
+  # Attack taxonomy mapping for detailed evaluation
+  attack_categories:
+    dos:
+      - neptune
+      - smurf
+      - pod
+      - teardrop
+      - land
+      - back
+      - apache2
+      - udpstorm
+      - processtable
+      - mailbomb
+    probe:
+      - ipsweep
+      - satan
+      - nmap
+      - portsweep
+      - saint
+      - mscan
+    r2l:
+      - guess_passwd
+      - ftp_write
+      - imap
+      - phf
+      - multihop
+      - warezmaster
+      - warezclient
+      - spy
+      - xlock
+      - xsnoop
+      - snmpguess
+      - snmpgetattack
+      - httptunnel
+      - sendmail
+      - named
+    u2r:
+      - buffer_overflow
+      - loadmodule
+      - rootkit
+      - perl
+      - sqlattack
+      - xterm
+      - ps
+
+model:
+  algorithm: "IsolationForest"
+  training_strategy: "normal_only"  # Options: "normal_only" (train purely on normal baseline) or "unsupervised_mixture"
+  parameters:
+    n_estimators: 150
+    max_samples: 512
+    contamination: 0.10
+    random_state: 42
+    n_jobs: -1
+  comparison_models:
+    - name: "Isolation Forest (Contamination=0.05)"
+      contamination: 0.05
+      n_estimators: 150
+    - name: "Isolation Forest (Contamination=0.10)"
+      contamination: 0.10
+      n_estimators: 150
+    - name: "Isolation Forest (Contamination=0.15)"
+      contamination: 0.15
+      n_estimators: 150
+
+pca:
+  n_components_visual: 2
+  variance_threshold: 0.90
+  random_state: 42
+
+persistence:
+  models_dir: "models"
+  detector_file: "models/isolation_forest.joblib"
+  preprocessor_file: "models/preprocessor.joblib"
+  pca_file: "models/pca_transformer.joblib"
+  metadata_file: "models/model_metadata.json"

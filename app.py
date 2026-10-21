@@ -32,6 +32,9 @@ from dashboard.components import (
     plot_explained_variance,
     plot_priority_breakdown,
     plot_category_recall,
+    plot_radar_risk_profile,
+    plot_protocol_sunburst,
+    plot_telemetry_flow_timeline,
 )
 
 # Page configuration
@@ -340,6 +343,12 @@ def main():
             with vcol2:
                 st.plotly_chart(plot_pca_2d(results), use_container_width=True)
 
+            vcol3, vcol4 = st.columns(2)
+            with vcol3:
+                st.plotly_chart(plot_telemetry_flow_timeline(results), use_container_width=True)
+            with vcol4:
+                st.plotly_chart(plot_protocol_sunburst(results), use_container_width=True)
+
     # =========================================================================
     # PAGE 3: SECURITY ALERTS
     # =========================================================================
@@ -454,12 +463,12 @@ def main():
                             st.success(f"Alert #{selected_idx} updated to status: {disposition}")
 
                     with ic2:
-                        st.markdown("#### Full Feature Telemetry")
-                        feat_dict = alert_record.to_dict()
-                        # Exclude generated meta columns for telemetry inspect
-                        excluded = ["is_anomaly", "anomaly_prediction", "anomaly_score", "review_priority", "anomaly_reasons", "pca_component_1", "pca_component_2"]
-                        clean_telemetry = {k: v for k, v in feat_dict.items() if k not in excluded}
-                        st.json(clean_telemetry)
+                        st.plotly_chart(plot_radar_risk_profile(alert_record), use_container_width=True)
+                        with st.expander("🔍 View Raw Connection Telemetry (JSON)", expanded=False):
+                            feat_dict = alert_record.to_dict()
+                            excluded = ["is_anomaly", "anomaly_prediction", "anomaly_score", "review_priority", "anomaly_reasons", "pca_component_1", "pca_component_2"]
+                            clean_telemetry = {k: v for k, v in feat_dict.items() if k not in excluded}
+                            st.json(clean_telemetry)
 
     # =========================================================================
     # PAGE 4: MODEL PERFORMANCE

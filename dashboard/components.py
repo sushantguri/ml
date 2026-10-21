@@ -473,3 +473,174 @@ def plot_category_recall(cat_metrics: Dict[str, Dict[str, Any]]) -> go.Figure:
         margin=dict(l=20, r=20, t=50, b=20),
     )
     return fig
+
+
+def plot_radar_risk_profile(record: pd.Series, baseline_stats: Optional[Dict[str, Any]] = None) -> go.Figure:
+    """Plot polar radar chart showing multi-dimensional risk footprint of a connection."""
+    categories = [
+        "Source Bytes",
+        "Dest Bytes",
+        "Connection Count",
+        "SYN Error Rate",
+        "Diff Srv Rate",
+        "Dst Host Count",
+    ]
+
+    # Map record attributes safely to normalized 0-100 scale for radar visualization
+    def get_norm_val(col, scale_max=1000):
+        val = float(record.get(col, 0.0))
+        return min(100.0, max(0.0, (val / scale_max) * 100.0))
+
+    src_b = get_norm_val("src_bytes", 5000)
+    dst_b = get_norm_val("dst_bytes", 5000)
+    cnt = get_norm_val("count", 300)
+    serror = float(record.get("serror_rate", 0.0)) * 100.0
+    diff_srv = float(record.get("diff_srv_rate", 0.0)) * 100.0
+    dst_cnt = get_norm_val("dst_host_count", 255)
+
+    observed_values = [src_b, dst_b, cnt, serror, diff_srv, dst_cnt]
+    baseline_values = [15.0, 12.0, 8.0, 1.0, 5.0, 30.0]
+
+    # Close loop for polar plot
+    categories_closed = categories + [categories[0]]
+    observed_closed = observed_values + [observed_values[0]]
+    baseline_closed = baseline_values + [baseline_values[0]]
+
+    fig = go.Figure()
+
+    fig.add_trace(
+        go.Scatterpolar(
+            r=baseline_closed,
+            theta=categories_closed,
+            fill="toself",
+            name="Normal Baseline",
+            line=dict(color="#10b981", width=1.5, dash="dot"),
+            fillcolor="rgba(16, 185, 129, 0.15)",
+        )
+    )
+
+    fig.add_trace(
+        go.Scatterpolar(
+            r=observed_closed,
+            theta=categories_closed,
+            fill="toself",
+            name="Observed Connection",
+            line=dict(color="#f43f5e", width=2.5),
+            fillcolor="rgba(244, 63, 94, 0.25)",
+        )
+    )
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, 100], color="#94a3b8", gridcolor="rgba(255,255,255,0.1)"),
+            angularaxis=dict(color="#f1f5f9", gridcolor="rgba(255,255,255,0.1)"),
+            bgcolor="rgba(15,23,42,0.4)",
+        ),
+        title="<b>Multi-Dimensional Threat Risk Radar</b>",
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=40, r=40, t=50, b=40),
+        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+    )
+    return fig
+
+
+def plot_protocol_sunburst(df: pd.DataFrame, max_records: int = 1000) -> go.Figure:
+    """Plot hierarchical Sunburst chart decomposing protocol -> service -> priority."""
+    sample = df.head(max_records).copy()
+    if not all(c in sample.columns for c in ["protocol_type", "service", "review_priority"]):
+        fig = go.Figure()
+        fig.update_layout(title="Sunburst columns not available")
+        return fig
+
+    # Top 10 most frequent services to keep sunburst clean and responsive
+    top_services = sample["service"].value_counts().head(12).index
+    sample["service_clean"] = sample["service"].apply(lambda s: s if s in top_services else "other")
+
+    fig = px.sunburst(
+        sample,
+        path=["protocol_type", "service_clean", "review_priority"],
+        color="review_priority",
+        color_discrete_map={
+            "CRITICAL": "#f43f5e",
+            "HIGH": "#fb923c",
+            "MEDIUM": "#fbbf24",
+            "LOW": "#10b981",
+        },
+        title="<b>Hierarchical Threat Distribution (Protocol → Service → Priority)</b>",
+        template="plotly_dark",
+    )
+
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=10, r=10, t=50, b=10),
+    )
+    return fig
+
+
+def plot_telemetry_flow_timeline(df: pd.DataFrame) -> go.Figure:
+    """Plot rolling sequence of analyzed network connections showing anomaly score trends."""
+    plot_df = df.head(500).copy().reset_index(drop=True)
+    plot_df["connection_seq"] = plot_df.index + 1
+    plot_df["rolling_score"] = plot_df["anomaly_score"].rolling(window=10, min_periods=1).mean()
+
+    fig = go.Figure()
+
+    # Scatter points colored by priority
+    colors = {
+        "CRITICAL": "#f43f5e",
+        "HIGH": "#fb923c",
+        "MEDIUM": "#fbbf24",
+        "LOW": "#10b981",
+    }
+
+    for priority, color in colors.items():
+        subset = plot_df[plot_df["review_priority"] == priority]
+        if not subset.empty:
+            fig.add_trace(
+                go.Scatter(
+                    x=subset["connection_seq"],
+                    y=subset["anomaly_score"],
+                    mode="markers",
+                    name=priority,
+                    marker=dict(color=color, size=7, opacity=0.8),
+                    hovertext=[
+                        f"Seq: #{r['connection_seq']}<br>Score: {r['anomaly_score']:.3f}<br>Proto: {r.get('protocol_type', '')}<br>Service: {r.get('service', '')}"
+                        for _, r in subset.iterrows()
+                    ],
+                    hoverinfo="text",
+                )
+            )
+
+    # Rolling average trend line
+    fig.add_trace(
+        go.Scatter(
+            x=plot_df["connection_seq"],
+            y=plot_df["rolling_score"],
+            mode="lines",
+            name="10-Session Moving Avg",
+            line=dict(color="#38bdf8", width=2),
+        )
+    )
+
+    # Threshold line
+    fig.add_hline(
+        y=0.50,
+        line_dash="dash",
+        line_color="#f43f5e",
+        annotation_text="Alert Threshold (0.50)",
+        annotation_position="bottom right",
+    )
+
+    fig.update_layout(
+        title="<b>Telemetry Arrival Timeline & Anomaly Score Fluctuation</b>",
+        xaxis_title="Packet / Connection Sequence Index",
+        yaxis_title="Anomaly Score [0.0 - 1.0]",
+        yaxis=dict(range=[0, 1.05]),
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(15,23,42,0.4)",
+        margin=dict(l=20, r=20, t=50, b=20),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
+    return fig

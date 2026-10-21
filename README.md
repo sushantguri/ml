@@ -4,7 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-1.5+-orange.svg)](https://scikit-learn.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg)](https://streamlit.io/)
-[![Tests Passing](https://img.shields.io/badge/tests-20%20passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-39%20passed-brightgreen.svg)](tests/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
 
 An enterprise-grade, unsupervised machine learning system for detecting cyber threats, zero-day intrusions, and abnormal network behaviors in cyber-physical and enterprise IT networks. Built using **Isolation Forests**, **Principal Component Analysis (PCA)**, **Scikit-Learn Pipelines**, and an interactive **Streamlit Security Operations Center (SOC) Dashboard**.
 
@@ -230,9 +231,54 @@ results_df = pipeline.predict_csv("data/samples/sample_mixed_traffic.csv", outpu
 print(results_df[["protocol_type", "service", "anomaly_prediction", "anomaly_score", "review_priority", "anomaly_reasons"]].head())
 ```
 
+### Method C: Via Real-Time REST API Microservice
+Start the high-throughput scoring server:
+```bash
+uvicorn src.api:app --host 0.0.0.0 --port 8000
+```
+Interactive Swagger docs available at: `http://localhost:8000/docs`
+
+#### Score a Single Connection via curl:
+```bash
+curl -X POST "http://localhost:8000/api/v1/score" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "protocol_type": "tcp",
+    "service": "private",
+    "flag": "S0",
+    "src_bytes": 0,
+    "count": 480,
+    "serror_rate": 1.0
+  }'
+```
+**JSON Response:**
+```json
+{
+  "is_anomaly": 1,
+  "anomaly_prediction": "Anomaly",
+  "anomaly_score": 0.9421,
+  "review_priority": "CRITICAL",
+  "anomaly_reasons": "count (+8.4σ); serror_rate (+12.1σ)",
+  "pca_component_1": 2.4512,
+  "pca_component_2": 1.1094
+}
+```
+
 ---
 
-## 8. Measured Benchmark Evaluation Results
+## 8. Automated SOC Incident Dossiers & MITRE ATT&CK® Mapping
+
+When an analyst reviews an alert in the dashboard or CLI, the system automatically correlates telemetry with the **MITRE ATT&CK Enterprise Matrix** and formats a **NIST SP 800-61 Rev. 2** compliant Incident Dossier:
+- **T1498 (Network Denial of Service)** for volumetric floods
+- **T1046 (Network Service Discovery)** & **T1595 (Active Scanning)** for sweeps
+- **T1110 (Brute Force)** & **T1190 (Exploit Public-Facing Application)** for R2L
+- **T1068 (Exploitation for Privilege Escalation)** for U2R
+
+Dossiers can be exported directly from the dashboard as formatted Markdown (`.md`) audit trails.
+
+---
+
+## 9. Measured Benchmark Evaluation Results
 
 The system was evaluated against all **22,544 held-out network sessions** in `KDDTest+`:
 
@@ -265,7 +311,7 @@ Actual Attack (1)       3,126 (FN - Missed)     9,692 (TP - Detected)
 
 ---
 
-## 9. Mathematical Foundations
+## 10. Mathematical Foundations
 
 ### Isolation Forest (Liu, Ting, & Zhou, 2008)
 Isolation Forests exploit two fundamental characteristics of anomalies:
@@ -284,7 +330,7 @@ Calculates orthogonal eigenvectors of the empirical covariance matrix $\Sigma = 
 
 ---
 
-## 10. Operational Security & Ethical Considerations
+## 11. Operational Security & Ethical Considerations
 
 1. **The Base-Rate Fallacy:** In enterprise networks where attacks constitute $<0.1\%$ of daily events, even an FPR of $1\%$ yields significant false alarms. Models must be judged on **Precision, Recall, and FPR**, never Accuracy alone.
 2. **Human-in-the-Loop:** Anomaly detection generates prioritized investigation leads, not automated sanctions. An anomalous session may simply represent an administrative backup or novel legitimate application.
@@ -293,7 +339,7 @@ Calculates orthogonal eigenvectors of the empirical covariance matrix $\Sigma = 
 
 ---
 
-## 11. Troubleshooting
+## 12. Troubleshooting
 
 | Issue | Cause | Solution |
 | :--- | :--- | :--- |
@@ -304,7 +350,7 @@ Calculates orthogonal eigenvectors of the empirical covariance matrix $\Sigma = 
 
 ---
 
-## 12. License & Citation
+## 13. License & Citation
 
 This project is licensed under the MIT License.
 If utilizing the NSL-KDD benchmark in academic research, cite:

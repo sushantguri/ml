@@ -22,6 +22,7 @@ if str(ROOT_DIR) not in sys.path:
 from src.data_loader import load_config, load_dataset
 from src.predict import InferencePipeline
 from src.train import run_training_pipeline
+from src.reporting import generate_incident_dossier
 from dashboard.components import (
     inject_custom_css,
     render_metric_card,
@@ -458,9 +459,23 @@ def main():
                             "Triage Decision",
                             ["Under Investigation", "Confirmed Security Incident", "Benign Outlier (False Positive)"],
                         )
-                        st.text_area("Analyst Investigation Notes", placeholder="Record findings or remediation steps...")
+                        notes = st.text_area("Analyst Investigation Notes", placeholder="Record findings or remediation steps...")
                         if st.button("Save Analyst Disposition"):
                             st.success(f"Alert #{selected_idx} updated to status: {disposition}")
+
+                        # Generate full incident dossier
+                        dossier_md = generate_incident_dossier(
+                            record=alert_record,
+                            alert_id=selected_idx,
+                            analyst_notes=notes,
+                            disposition=disposition,
+                        )
+                        st.download_button(
+                            label="📄 Export SOC Incident Dossier (.md)",
+                            data=dossier_md.encode("utf-8"),
+                            file_name=f"SOC_Incident_Dossier_#{selected_idx}.md",
+                            mime="text/markdown",
+                        )
 
                     with ic2:
                         st.plotly_chart(plot_radar_risk_profile(alert_record), use_container_width=True)

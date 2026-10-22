@@ -181,9 +181,9 @@ def main():
             demo_df = pipeline.predict_csv(sample_path)
             c1, c2 = st.columns([3, 2])
             with c1:
-                st.plotly_chart(plot_score_distribution(demo_df), use_container_width=True)
+                st.plotly_chart(plot_score_distribution(demo_df), width="stretch")
             with c2:
-                st.plotly_chart(plot_priority_breakdown(demo_df), use_container_width=True)
+                st.plotly_chart(plot_priority_breakdown(demo_df), width="stretch")
 
     # =========================================================================
     # PAGE 2: TRAFFIC ANALYSIS
@@ -247,7 +247,7 @@ def main():
 
         if input_df is not None:
             st.markdown(f"#### 📄 Data Preview: `{source_label}`")
-            st.dataframe(input_df.head(5), use_container_width=True)
+            st.dataframe(input_df.head(5), width="stretch")
 
             # Schema Validation
             is_valid, missing_cols, _extra_cols = pipeline.validate_input_schema(input_df)
@@ -324,7 +324,7 @@ def main():
                 "anomaly_reasons",
             ]
             valid_disp_cols = [c for c in display_cols if c in filtered_df.columns]
-            st.dataframe(filtered_df[valid_disp_cols].head(250), use_container_width=True)
+            st.dataframe(filtered_df[valid_disp_cols].head(250), width="stretch")
 
             # Export CSV
             csv_data = results.to_csv(index=False).encode("utf-8")
@@ -339,15 +339,15 @@ def main():
             st.markdown("### 📊 Batch Diagnostic Projections")
             vcol1, vcol2 = st.columns(2)
             with vcol1:
-                st.plotly_chart(plot_score_distribution(results), use_container_width=True)
+                st.plotly_chart(plot_score_distribution(results), width="stretch")
             with vcol2:
-                st.plotly_chart(plot_pca_2d(results), use_container_width=True)
+                st.plotly_chart(plot_pca_2d(results), width="stretch")
 
             vcol3, vcol4 = st.columns(2)
             with vcol3:
-                st.plotly_chart(plot_telemetry_flow_timeline(results), use_container_width=True)
+                st.plotly_chart(plot_telemetry_flow_timeline(results), width="stretch")
             with vcol4:
-                st.plotly_chart(plot_protocol_sunburst(results), use_container_width=True)
+                st.plotly_chart(plot_protocol_sunburst(results), width="stretch")
 
     # =========================================================================
     # PAGE 3: SECURITY ALERTS
@@ -428,7 +428,7 @@ def main():
                     "anomaly_reasons",
                 ]
                 valid_alert_cols = [c for c in disp_alert_cols if c in filtered_alerts.columns]
-                st.dataframe(filtered_alerts[valid_alert_cols], use_container_width=True)
+                st.dataframe(filtered_alerts[valid_alert_cols], width="stretch")
 
                 # Alert Detail Inspector
                 st.markdown("---")
@@ -477,7 +477,7 @@ def main():
                         )
 
                     with ic2:
-                        st.plotly_chart(plot_radar_risk_profile(alert_record), use_container_width=True)
+                        st.plotly_chart(plot_radar_risk_profile(alert_record), width="stretch")
                         with st.expander("🔍 View Raw Connection Telemetry (JSON)", expanded=False):
                             feat_dict = alert_record.to_dict()
                             excluded = ["is_anomaly", "anomaly_prediction", "anomaly_score", "review_priority", "anomaly_reasons", "pca_component_1", "pca_component_2"]
@@ -534,27 +534,27 @@ def main():
             dcol1, dcol2 = st.columns(2)
             with dcol1:
                 if "confusion_matrix" in test_metrics:
-                    st.plotly_chart(plot_confusion_matrix(test_metrics["confusion_matrix"]), use_container_width=True)
+                    st.plotly_chart(plot_confusion_matrix(test_metrics["confusion_matrix"]), width="stretch")
             with dcol2:
                 if "pr_curve" in test_metrics:
-                    st.plotly_chart(plot_pr_curve(test_metrics["pr_curve"]), use_container_width=True)
+                    st.plotly_chart(plot_pr_curve(test_metrics["pr_curve"]), width="stretch")
 
             # Attack category recall and PCA variance
             rcol1, rcol2 = st.columns(2)
             with rcol1:
                 if "per_category_metrics" in test_metrics:
-                    st.plotly_chart(plot_category_recall(test_metrics["per_category_metrics"]), use_container_width=True)
+                    st.plotly_chart(plot_category_recall(test_metrics["per_category_metrics"]), width="stretch")
             with rcol2:
                 pca_summary = metadata.get("pca_diagnostics", {})
                 if pca_summary:
-                    st.plotly_chart(plot_explained_variance(pca_summary), use_container_width=True)
+                    st.plotly_chart(plot_explained_variance(pca_summary), width="stretch")
 
             # Validation Comparison Table
             st.markdown("### ⚖️ Multi-Configuration Validation Comparison")
             val_comp = metadata.get("validation_comparison", [])
             if val_comp:
                 val_df = pd.DataFrame(val_comp)
-                st.dataframe(val_df, use_container_width=True)
+                st.dataframe(val_df, width="stretch")
                 st.caption("Comparison evaluated on 20% validation split (5,039 records) without using test set labels.")
 
             # Operational trade-offs note

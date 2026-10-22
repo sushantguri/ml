@@ -10,12 +10,10 @@ Provides:
 """
 
 from __future__ import annotations
-from datetime import datetime, timezone
-import json
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-import pandas as pd
 
+from datetime import UTC, datetime
+
+import pandas as pd
 
 # MITRE ATT&CK mapping for network anomaly indicators
 MITRE_ATTACK_MAPPINGS = {
@@ -93,9 +91,9 @@ def infer_threat_class(record: pd.Series) -> str:
 
 def generate_incident_dossier(
     record: pd.Series,
-    alert_id: Optional[str | int] = None,
-    analyst_notes: Optional[str] = None,
-    disposition: Optional[str] = None,
+    alert_id: str | int | None = None,
+    analyst_notes: str | None = None,
+    disposition: str | None = None,
 ) -> str:
     """Generate a formal NIST SP 800-61 compliant SOC Incident Dossier in Markdown.
     
@@ -108,7 +106,7 @@ def generate_incident_dossier(
     Returns:
         Formatted Markdown incident report string.
     """
-    now_utc = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    now_utc = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
     aid = f"SEC-INC-{alert_id}" if alert_id is not None else "SEC-INC-UNASSIGNED"
     score = float(record.get("anomaly_score", 0.0))
     priority = str(record.get("review_priority", "HIGH"))

@@ -8,9 +8,10 @@ Usage Terms: Research and educational benchmark for evaluating intrusion detecti
 """
 
 from __future__ import annotations
+
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent.parent / "config" / "config.yaml"
 
 
-def load_config(config_path: Optional[str | Path] = None) -> Dict[str, Any]:
+def load_config(config_path: str | Path | None = None) -> dict[str, Any]:
     """Load system configuration from YAML file.
     
     Args:
@@ -37,7 +38,7 @@ def load_config(config_path: Optional[str | Path] = None) -> Dict[str, Any]:
         return yaml.safe_load(f)
 
 
-def get_attack_taxonomy(config: Optional[Dict[str, Any]] = None) -> Dict[str, str]:
+def get_attack_taxonomy(config: dict[str, Any] | None = None) -> dict[str, str]:
     """Create a flat mapping of specific attack types to high-level attack categories.
     
     Categories:
@@ -50,7 +51,7 @@ def get_attack_taxonomy(config: Optional[Dict[str, Any]] = None) -> Dict[str, st
     if config is None:
         config = load_config()
 
-    taxonomy_map: Dict[str, str] = {"normal": "normal"}
+    taxonomy_map: dict[str, str] = {"normal": "normal"}
     attack_categories = config.get("schema", {}).get("attack_categories", {})
 
     for cat_name, attack_list in attack_categories.items():
@@ -62,10 +63,10 @@ def get_attack_taxonomy(config: Optional[Dict[str, Any]] = None) -> Dict[str, st
 
 def load_dataset(
     filepath: str | Path,
-    config: Optional[Dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
     drop_metadata: bool = True,
-    nrows: Optional[int] = None,
-) -> Tuple[pd.DataFrame, Optional[pd.Series], Optional[pd.Series]]:
+    nrows: int | None = None,
+) -> tuple[pd.DataFrame, pd.Series | None, pd.Series | None]:
     """Robustly load a network traffic dataset file (CSV or TXT).
     
     Automatically detects:
@@ -93,10 +94,10 @@ def load_dataset(
     if config is None:
         config = load_config()
 
-    full_columns: List[str] = config["schema"]["columns"]
-    feature_columns: List[str] = [c for c in full_columns if c not in ("label", "difficulty_level")]
+    full_columns: list[str] = config["schema"]["columns"]
+    feature_columns: list[str] = [c for c in full_columns if c not in ("label", "difficulty_level")]
     target_col: str = config["schema"].get("target_column", "label")
-    metadata_cols: List[str] = config["schema"].get("metadata_columns", ["difficulty_level"])
+    metadata_cols: list[str] = config["schema"].get("metadata_columns", ["difficulty_level"])
 
     # Inspect first line to detect if header exists
     with open(path, "r", encoding="utf-8", errors="ignore") as f:
@@ -138,8 +139,8 @@ def load_dataset(
                 df[col] = df[col].fillna(df[col].mode().iloc[0] if not df[col].mode().empty else "unknown")
 
     # Extract target label if present
-    y_binary: Optional[pd.Series] = None
-    attack_categories: Optional[pd.Series] = None
+    y_binary: pd.Series | None = None
+    attack_categories: pd.Series | None = None
 
     if target_col in df.columns:
         raw_labels = df[target_col].astype(str).str.strip().str.lower().str.rstrip(".")
@@ -171,11 +172,11 @@ def load_dataset(
 
 def get_dataset_summary(
     X: pd.DataFrame,
-    y: Optional[pd.Series] = None,
-    attack_cat: Optional[pd.Series] = None,
-) -> Dict[str, Any]:
+    y: pd.Series | None = None,
+    attack_cat: pd.Series | None = None,
+) -> dict[str, Any]:
     """Generate exploration summary statistics for network traffic records."""
-    summary: Dict[str, Any] = {
+    summary: dict[str, Any] = {
         "total_records": len(X),
         "total_features": X.shape[1],
         "columns": list(X.columns),

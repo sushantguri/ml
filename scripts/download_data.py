@@ -14,6 +14,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+
 import pandas as pd
 import requests
 import yaml
@@ -55,7 +56,7 @@ def download_file(url: str, dest_path: Path, force: bool = False) -> bool:
 
         logger.info("Download completed successfully (%d bytes saved).", total_bytes)
         return True
-    except Exception as e:
+    except (requests.RequestException, OSError) as e:
         logger.error("Failed to download from %s: %s", url, e)
         if dest_path.exists():
             dest_path.unlink()
@@ -73,8 +74,7 @@ def generate_samples(train_path: Path, test_path: Path, samples_dir: Path, colum
 
     logger.info("Generating evaluation and test sample CSVs in %s...", samples_dir)
 
-    # Read slice from train and test
-    df_train = pd.read_csv(train_path, header=None, names=columns, nrows=1000)
+    # Read slice from test dataset
     df_test = pd.read_csv(test_path, header=None, names=columns, nrows=1000)
 
     # 1. Normal traffic sample (features only, no target column)

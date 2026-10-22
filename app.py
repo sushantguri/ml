@@ -4,13 +4,12 @@ Streamlit Web Application.
 """
 
 from __future__ import annotations
+
 import json
-import logging
-from pathlib import Path
 import sys
 import time
+from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import streamlit as st
 
@@ -19,24 +18,24 @@ ROOT_DIR = Path(__file__).resolve().parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.data_loader import load_config, load_dataset
-from src.predict import InferencePipeline
-from src.train import run_training_pipeline
-from src.reporting import generate_incident_dossier
 from dashboard.components import (
     inject_custom_css,
-    render_metric_card,
-    plot_score_distribution,
-    plot_pca_2d,
-    plot_confusion_matrix,
-    plot_pr_curve,
-    plot_explained_variance,
-    plot_priority_breakdown,
     plot_category_recall,
-    plot_radar_risk_profile,
+    plot_confusion_matrix,
+    plot_explained_variance,
+    plot_pca_2d,
+    plot_pr_curve,
+    plot_priority_breakdown,
     plot_protocol_sunburst,
+    plot_radar_risk_profile,
+    plot_score_distribution,
     plot_telemetry_flow_timeline,
+    render_metric_card,
 )
+from src.data_loader import load_dataset
+from src.predict import InferencePipeline
+from src.reporting import generate_incident_dossier
+from src.train import run_training_pipeline
 
 # Page configuration
 st.set_page_config(
@@ -63,7 +62,7 @@ def get_metadata() -> dict:
         try:
             with open(metadata_path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        except Exception:
+        except (json.JSONDecodeError, OSError):
             return {}
     return {}
 
@@ -153,7 +152,7 @@ def main():
 
         with col_arch1:
             st.markdown(
-                """
+                r"""
                 #### Pipeline Architecture Workflow
                 1. **Data Ingestion**: Multi-format ingestion supporting raw streaming packets and batch flow records.
                 2. **Feature Engineering**: Robust `ColumnTransformer` with `StandardScaler` for continuous numericals and `OneHotEncoder(handle_unknown='ignore')` for symbolic protocols.
@@ -216,7 +215,7 @@ def main():
                     input_df = pd.read_csv(uploaded_file)
                     source_label = uploaded_file.name
                     st.success(f"Uploaded `{uploaded_file.name}` ({len(input_df)} rows, {input_df.shape[1]} columns)")
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001
                     st.error(f"Error parsing uploaded CSV: {e}")
             else:
                 st.info("Upload a CSV file or select one of the built-in benchmark samples above to analyze traffic immediately.")
@@ -251,7 +250,7 @@ def main():
             st.dataframe(input_df.head(5), use_container_width=True)
 
             # Schema Validation
-            is_valid, missing_cols, extra_cols = pipeline.validate_input_schema(input_df)
+            is_valid, missing_cols, _extra_cols = pipeline.validate_input_schema(input_df)
             if not is_valid:
                 st.warning(f"⚠️ Schema mismatch detected. Missing {len(missing_cols)} expected features. Missing features will be imputed with normal baseline statistics.")
             else:
@@ -296,7 +295,7 @@ def main():
             with fcol2:
                 priority_filter = st.selectbox("Review Priority", ["All", "CRITICAL", "HIGH", "MEDIUM", "LOW"])
             with fcol3:
-                proto_options = ["All"] + sorted(list(results["protocol_type"].unique())) if "protocol_type" in results else ["All"]
+                proto_options = ["All"] + sorted(results["protocol_type"].unique()) if "protocol_type" in results else ["All"]
                 proto_filter = st.selectbox("Protocol", proto_options)
 
             filtered_df = results.copy()
@@ -615,7 +614,7 @@ def main():
                     value=int(curr_params.get("n_estimators", 150)),
                     help="More trees increase score stability and precision, but increase training time slightly.",
                 )
-                max_samples = st.select_slider(
+                st.select_slider(
                     "Max Samples per Subtree",
                     options=[128, 256, 512, 1024],
                     value=int(curr_params.get("max_samples", 512)),
@@ -638,7 +637,7 @@ def main():
                 status_text.text(f"Fitting preprocessor & Isolation Forest (strategy={strategy}, trees={n_estimators})...")
                 progress_bar.progress(50)
 
-                new_meta = run_training_pipeline(
+                run_training_pipeline(
                     training_strategy=strategy,
                     contamination=contamination,
                     n_estimators=n_estimators,
@@ -654,7 +653,7 @@ def main():
                 st.cache_resource.clear()
                 st.success("✅ Model retrained successfully! New artifacts saved to `models/`.")
                 st.balloons()
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 st.error(f"Training failed with error: {e}")
 
     # =========================================================================

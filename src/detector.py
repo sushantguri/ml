@@ -13,8 +13,9 @@ Strictly adheres to:
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, Optional, Tuple, Any
+from typing import Any
 
 import numpy as np
 from sklearn.ensemble import IsolationForest
@@ -48,7 +49,7 @@ class IsolationForestDetector:
         self.random_state = random_state
         self.n_jobs = n_jobs
 
-        self.model: Optional[IsolationForest] = None
+        self.model: IsolationForest | None = None
         self.threshold: float = 0.0  # Decision function threshold for anomaly boundary
         self.score_min: float = -0.35
         self.score_max: float = 0.25
@@ -129,7 +130,7 @@ class IsolationForestDetector:
         normalized = np.clip(normalized, 0.0, 1.0)
         return normalized
 
-    def predict(self, X: np.ndarray, threshold: Optional[float] = None) -> np.ndarray:
+    def predict(self, X: np.ndarray, threshold: float | None = None) -> np.ndarray:
         """Predict binary anomaly flags.
         
         Args:
@@ -154,7 +155,7 @@ class IsolationForestDetector:
         self.threshold = float(threshold)
         logger.info("Detector decision threshold updated to %.4f", self.threshold)
 
-    def get_params(self) -> Dict[str, Any]:
+    def get_params(self) -> dict[str, Any]:
         """Return model hyperparameters."""
         return {
             "n_estimators": self.n_estimators,

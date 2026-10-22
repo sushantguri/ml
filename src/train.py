@@ -12,28 +12,27 @@ Strictly adheres to:
 """
 
 from __future__ import annotations
+
 import argparse
-from datetime import datetime, timezone
 import json
 import logging
+import sys
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, Optional, Any
+from typing import Any
 
 import joblib
-import numpy as np
-import pandas as pd
 from sklearn.model_selection import train_test_split
-import sys
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.data_loader import load_config, load_dataset
-from src.preprocessing import TrafficPreprocessor
-from src.feature_engineering import PCAManager
 from src.detector import IsolationForestDetector
-from src.evaluation import evaluate_predictions, compare_configurations
+from src.evaluation import compare_configurations, evaluate_predictions
+from src.feature_engineering import PCAManager
+from src.preprocessing import TrafficPreprocessor
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -42,14 +41,14 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 
 
 def run_training_pipeline(
-    config_path: Optional[str | Path] = None,
-    train_path: Optional[str | Path] = None,
-    test_path: Optional[str | Path] = None,
-    training_strategy: Optional[str] = None,
-    contamination: Optional[float] = None,
-    n_estimators: Optional[int] = None,
+    config_path: str | Path | None = None,
+    train_path: str | Path | None = None,
+    test_path: str | Path | None = None,
+    training_strategy: str | None = None,
+    contamination: float | None = None,
+    n_estimators: int | None = None,
     random_state: int = 42,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Execute end-to-end unsupervised training and benchmark evaluation.
     
     Args:
@@ -92,7 +91,7 @@ def run_training_pipeline(
     X_test, y_test, cat_test = load_dataset(test_file, config=config)
 
     # 2. Train/Validation Split (80/20) for hyperparameter validation without test peeking
-    X_train_df, X_val_df, y_train_s, y_val_s, cat_train_s, cat_val_s = train_test_split(
+    X_train_df, X_val_df, y_train_s, y_val_s, _cat_train_s, cat_val_s = train_test_split(
         X_raw, y_raw, cat_raw, test_size=0.20, random_state=random_state, stratify=y_raw
     )
     logger.info("Data Split: Train=%d, Validation=%d, Test=%d", len(X_train_df), len(X_val_df), len(X_test))
@@ -144,9 +143,9 @@ def run_training_pipeline(
     # 7. Compare Multiple Configurations on Validation Data
     logger.info("Comparing candidate configurations on validation split...")
     candidate_configs = {
-        f"Contamination=0.05": IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.05, random_state=random_state).fit(X_train_proc),
-        f"Contamination=0.10 (Default)": primary_detector if contam == 0.10 else IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.10, random_state=random_state).fit(X_train_proc),
-        f"Contamination=0.15": IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.15, random_state=random_state).fit(X_train_proc),
+        "Contamination=0.05": IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.05, random_state=random_state).fit(X_train_proc),
+        "Contamination=0.10 (Default)": primary_detector if contam == 0.10 else IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.10, random_state=random_state).fit(X_train_proc),
+        "Contamination=0.15": IsolationForestDetector(n_estimators=n_trees, max_samples=max_samples, contamination=0.15, random_state=random_state).fit(X_train_proc),
     }
 
     comparison_df = compare_configurations(
@@ -193,7 +192,7 @@ def run_training_pipeline(
     joblib.dump(pca_manager, pca_path)
 
     metadata = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "project": config["project"]["name"],
         "version": config["project"]["version"],
         "dataset": {

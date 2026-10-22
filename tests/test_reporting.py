@@ -5,7 +5,11 @@ Unit Tests for Incident Reporting and MITRE ATT&CK Mapping Module.
 import pandas as pd
 import pytest
 
-from src.reporting import generate_incident_dossier, infer_threat_class, MITRE_ATTACK_MAPPINGS
+from src.reporting import (
+    MITRE_ATTACK_MAPPINGS,
+    generate_incident_dossier,
+    infer_threat_class,
+)
 
 
 @pytest.fixture
@@ -71,7 +75,7 @@ def test_generate_incident_dossier(sample_attack_record):
 
 def test_mitre_mapping_structure():
     """Test integrity of MITRE ATT&CK taxonomy entries."""
-    for threat, data in MITRE_ATTACK_MAPPINGS.items():
+    for data in MITRE_ATTACK_MAPPINGS.values():
         assert "tactic" in data
         assert "techniques" in data
         assert len(data["techniques"]) > 0

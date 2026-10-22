@@ -11,11 +11,12 @@ Provides:
 """
 
 from __future__ import annotations
+
 import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 import joblib
 import numpy as np
@@ -25,10 +26,9 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from src.data_loader import load_config
-from src.preprocessing import TrafficPreprocessor
 from src.detector import IsolationForestDetector
 from src.feature_engineering import PCAManager
+from src.preprocessing import TrafficPreprocessor
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +38,12 @@ DEFAULT_MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 class InferencePipeline:
     """End-to-end inference engine for network traffic anomaly detection."""
 
-    def __init__(self, models_dir: Optional[str | Path] = None):
+    def __init__(self, models_dir: str | Path | None = None):
         self.models_dir = Path(models_dir) if models_dir else DEFAULT_MODELS_DIR
-        self.preprocessor: Optional[TrafficPreprocessor] = None
-        self.detector: Optional[IsolationForestDetector] = None
-        self.pca_manager: Optional[PCAManager] = None
-        self.metadata: Dict[str, Any] = {}
+        self.preprocessor: TrafficPreprocessor | None = None
+        self.detector: IsolationForestDetector | None = None
+        self.pca_manager: PCAManager | None = None
+        self.metadata: dict[str, Any] = {}
         self.is_loaded: bool = False
 
         self._load_artifacts()
@@ -71,11 +71,11 @@ class InferencePipeline:
 
             self.is_loaded = True
             logger.info("Successfully loaded model artifacts from %s", self.models_dir)
-        except Exception as e:
+        except (OSError, EOFError, json.JSONDecodeError, KeyError, ValueError) as e:
             logger.error("Error loading model artifacts: %s", e)
             self.is_loaded = False
 
-    def validate_input_schema(self, df: pd.DataFrame) -> Tuple[bool, List[str], List[str]]:
+    def validate_input_schema(self, df: pd.DataFrame) -> tuple[bool, list[str], list[str]]:
         """Validate input DataFrame against required schema.
         
         Returns:
@@ -195,7 +195,7 @@ class InferencePipeline:
 
         return result_df
 
-    def predict_csv(self, input_csv_path: str | Path, output_csv_path: Optional[str | Path] = None) -> pd.DataFrame:
+    def predict_csv(self, input_csv_path: str | Path, output_csv_path: str | Path | None = None) -> pd.DataFrame:
         """Run batch inference on a CSV file and optionally save enriched results."""
         input_path = Path(input_csv_path)
         if not input_path.exists():

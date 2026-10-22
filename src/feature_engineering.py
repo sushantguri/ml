@@ -11,8 +11,9 @@ Strictly adheres to:
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 import numpy as np
 from sklearn.decomposition import PCA
@@ -25,8 +26,8 @@ class PCAManager:
 
     def __init__(self, random_state: int = 42):
         self.random_state = random_state
-        self.pca_full: Optional[PCA] = None
-        self.pca_2d: Optional[PCA] = None
+        self.pca_full: PCA | None = None
+        self.pca_2d: PCA | None = None
         self.explained_variance_ratio: np.ndarray = np.array([])
         self.cumulative_variance: np.ndarray = np.array([])
         self.n_components_90: int = 2
@@ -57,7 +58,7 @@ class PCAManager:
         if len(indices_above_threshold) > 0:
             self.n_components_90 = int(indices_above_threshold[0] + 1)
         else:
-            self.n_components_90 = int(len(self.cumulative_variance))
+            self.n_components_90 = len(self.cumulative_variance)
 
         # Fit dedicated 2D PCA for fast visual projections
         self.pca_2d = PCA(n_components=2, random_state=self.random_state)
@@ -85,7 +86,7 @@ class PCAManager:
             raise ValueError("PCA has not been fitted yet. Call fit() first.")
         return self.pca_2d.transform(X_processed)
 
-    def get_variance_summary(self) -> Dict[str, Any]:
+    def get_variance_summary(self) -> dict[str, Any]:
         """Return variance diagnostics dictionary for reporting and visualization."""
         return {
             "n_components_90_variance": int(self.n_components_90),

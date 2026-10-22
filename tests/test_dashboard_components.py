@@ -7,15 +7,15 @@ import plotly.graph_objects as go
 import pytest
 
 from dashboard.components import (
-    plot_score_distribution,
-    plot_pca_2d,
-    plot_confusion_matrix,
-    plot_pr_curve,
-    plot_explained_variance,
-    plot_priority_breakdown,
     plot_category_recall,
-    plot_radar_risk_profile,
+    plot_confusion_matrix,
+    plot_explained_variance,
+    plot_pca_2d,
+    plot_pr_curve,
+    plot_priority_breakdown,
     plot_protocol_sunburst,
+    plot_radar_risk_profile,
+    plot_score_distribution,
     plot_telemetry_flow_timeline,
 )
 

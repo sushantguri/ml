@@ -2,7 +2,6 @@
 Unit Tests for Isolation Forest Detector and Anomaly Scoring.
 """
 
-from pathlib import Path
 import joblib
 import numpy as np
 import pytest

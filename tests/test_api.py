@@ -3,7 +3,6 @@ Unit Tests for FastAPI Scoring Microservice.
 """
 
 from fastapi.testclient import TestClient
-import pytest
 
 from src.api import app
 

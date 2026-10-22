@@ -13,20 +13,21 @@ Calculates:
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import (
+    accuracy_score,
+    average_precision_score,
     confusion_matrix,
     f1_score,
     precision_recall_curve,
     precision_score,
     recall_score,
-    average_precision_score,
     roc_auc_score,
-    accuracy_score,
 )
 
 logger = logging.getLogger(__name__)
@@ -35,9 +36,9 @@ logger = logging.getLogger(__name__)
 def evaluate_predictions(
     y_true: np.ndarray,
     y_pred: np.ndarray,
-    anomaly_scores: Optional[np.ndarray] = None,
-    attack_categories: Optional[pd.Series] = None,
-) -> Dict[str, Any]:
+    anomaly_scores: np.ndarray | None = None,
+    attack_categories: pd.Series | None = None,
+) -> dict[str, Any]:
     """Calculate comprehensive evaluation metrics against ground-truth labels.
     
     Conventions:
@@ -70,7 +71,7 @@ def evaluate_predictions(
     fnr = float(fn / (fn + tp)) if (fn + tp) > 0 else 0.0
     specificity = float(tn / (tn + fp)) if (tn + fp) > 0 else 0.0
 
-    metrics: Dict[str, Any] = {
+    metrics: dict[str, Any] = {
         "precision": round(precision, 4),
         "recall": round(recall, 4),
         "f1_score": round(f1, 4),
@@ -86,7 +87,7 @@ def evaluate_predictions(
         },
         "false_positives_count": int(fp),
         "false_negatives_count": int(fn),
-        "total_evaluated": int(len(y_true)),
+        "total_evaluated": len(y_true),
         "normal_count": int(tn + fp),
         "attack_count": int(tp + fn),
     }
@@ -107,14 +108,14 @@ def evaluate_predictions(
                 "average_precision": round(float(avg_prec), 4),
                 "roc_auc": round(float(roc_auc), 4),
             }
-        except Exception as e:
+        except (ValueError, TypeError, ZeroDivisionError) as e:
             logger.warning("Could not calculate PR curve: %s", e)
 
     # Per attack category recall
     if attack_categories is not None:
         cat_series = attack_categories.reset_index(drop=True)
         pred_series = pd.Series(y_pred)
-        cat_metrics: Dict[str, Dict[str, Any]] = {}
+        cat_metrics: dict[str, dict[str, Any]] = {}
 
         for cat in cat_series.unique():
             if str(cat).lower() == "normal":
@@ -154,10 +155,10 @@ def evaluate_predictions(
 
 
 def compare_configurations(
-    models_dict: Dict[str, Any],
+    models_dict: dict[str, Any],
     X_val_processed: np.ndarray,
     y_val: np.ndarray,
-    attack_cat_val: Optional[pd.Series] = None,
+    attack_cat_val: pd.Series | None = None,
 ) -> pd.DataFrame:
     """Compare multiple detector configurations on validation data.
     

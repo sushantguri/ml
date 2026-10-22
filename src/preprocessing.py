@@ -11,8 +11,8 @@ Strictly adheres to:
 """
 
 from __future__ import annotations
+
 import logging
-from typing import Dict, List, Optional, Tuple, Any
 
 import numpy as np
 import pandas as pd
@@ -27,20 +27,20 @@ class TrafficPreprocessor:
 
     def __init__(
         self,
-        categorical_features: Optional[List[str]] = None,
-        binary_features: Optional[List[str]] = None,
-        numerical_features: Optional[List[str]] = None,
+        categorical_features: list[str] | None = None,
+        binary_features: list[str] | None = None,
+        numerical_features: list[str] | None = None,
     ):
         self.categorical_features = categorical_features or ["protocol_type", "service", "flag"]
         self.binary_features = binary_features or [
             "land", "logged_in", "root_shell", "su_attempted", "is_host_login", "is_guest_login"
         ]
         self.numerical_features = numerical_features or []
-        self.transformer: Optional[ColumnTransformer] = None
-        self.feature_names_out: List[str] = []
-        self.reference_stats: Dict[str, Dict[str, float]] = {}
+        self.transformer: ColumnTransformer | None = None
+        self.feature_names_out: list[str] = []
+        self.reference_stats: dict[str, dict[str, float]] = {}
 
-    def _determine_columns(self, X: pd.DataFrame) -> Tuple[List[str], List[str]]:
+    def _determine_columns(self, X: pd.DataFrame) -> tuple[list[str], list[str]]:
         """Identify available categorical vs numerical columns from input DataFrame."""
         cat_cols = [c for c in self.categorical_features if c in X.columns]
         # Treat binary and continuous numerical columns together for standard scaling
@@ -86,7 +86,7 @@ class TrafficPreprocessor:
         # Retrieve feature names out
         try:
             self.feature_names_out = list(self.transformer.get_feature_names_out())
-        except Exception:
+        except (AttributeError, ValueError):
             # Fallback if names cannot be retrieved
             self.feature_names_out = [f"feat_{i}" for i in range(self.transformer.transform(X_train.iloc[:2]).shape[1])]
 
@@ -139,6 +139,6 @@ class TrafficPreprocessor:
         """Fit on training data and transform it."""
         return self.fit(X_train).transform(X_train)
 
-    def get_feature_names(self) -> List[str]:
+    def get_feature_names(self) -> list[str]:
         """Return names of output features after one-hot encoding."""
         return self.feature_names_out

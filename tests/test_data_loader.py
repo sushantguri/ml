@@ -2,13 +2,16 @@
 Unit Tests for Data Ingestion and Schema Validation.
 """
 
-from pathlib import Path
-import tempfile
 import numpy as np
 import pandas as pd
 import pytest
 
-from src.data_loader import load_dataset, get_attack_taxonomy, get_dataset_summary, load_config
+from src.data_loader import (
+    get_attack_taxonomy,
+    get_dataset_summary,
+    load_config,
+    load_dataset,
+)
 
 
 @pytest.fixture
@@ -96,7 +99,7 @@ def test_missing_values_handled(tmp_path):
     file_path = tmp_path / "with_missing.csv"
     df.to_csv(file_path, index=False)
 
-    X, y, _ = load_dataset(file_path)
+    X, _y, _ = load_dataset(file_path)
     assert X.isnull().sum().sum() == 0
 
 

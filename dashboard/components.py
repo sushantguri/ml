@@ -4,8 +4,9 @@ Adaptive Cyber-Physical Security System.
 """
 
 from __future__ import annotations
-from typing import Dict, List, Optional, Any
-import numpy as np
+
+from typing import Any
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -163,7 +164,7 @@ def inject_custom_css() -> None:
     )
 
 
-def render_metric_card(title: str, value: Any, subtitle: str = "", border_color: Optional[str] = None) -> None:
+def render_metric_card(title: str, value: Any, subtitle: str = "", border_color: str | None = None) -> None:
     """Render a modern glassmorphic SOC metric card."""
     border_style = f"border-color: {border_color};" if border_color else ""
     st.markdown(
@@ -225,8 +226,8 @@ def plot_score_distribution(df: pd.DataFrame) -> go.Figure:
         plot_bgcolor="rgba(15,23,42,0.4)",
         xaxis_title="Calibrated Anomaly Score",
         yaxis_title="Record Count",
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     return fig
 
@@ -265,13 +266,13 @@ def plot_pca_2d(df: pd.DataFrame, max_points: int = 1500) -> go.Figure:
         plot_bgcolor="rgba(15,23,42,0.4)",
         xaxis_title="Principal Component 1 (PC1)",
         yaxis_title="Principal Component 2 (PC2)",
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     return fig
 
 
-def plot_confusion_matrix(cm_dict: Dict[str, int]) -> go.Figure:
+def plot_confusion_matrix(cm_dict: dict[str, int]) -> go.Figure:
     """Plot interactive confusion matrix heatmap."""
     tn = cm_dict["true_negatives"]
     fp = cm_dict["false_positives"]
@@ -305,7 +306,7 @@ def plot_confusion_matrix(cm_dict: Dict[str, int]) -> go.Figure:
                 y=y[i],
                 text=annotations[i][j],
                 showarrow=False,
-                font=dict(color="#ffffff", size=14, family="JetBrains Mono"),
+                font={"color": "#ffffff", "size": 14, "family": "JetBrains Mono"},
             )
 
     fig.update_layout(
@@ -313,12 +314,12 @@ def plot_confusion_matrix(cm_dict: Dict[str, int]) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.4)",
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
     )
     return fig
 
 
-def plot_pr_curve(pr_data: Dict[str, Any]) -> go.Figure:
+def plot_pr_curve(pr_data: dict[str, Any]) -> go.Figure:
     """Plot Precision-Recall curve."""
     recalls = pr_data.get("recalls", [])
     precisions = pr_data.get("precisions", [])
@@ -331,7 +332,7 @@ def plot_pr_curve(pr_data: Dict[str, Any]) -> go.Figure:
             y=precisions,
             mode="lines",
             name=f"PR Curve (AP = {ap:.4f})",
-            line=dict(color="#38bdf8", width=3),
+            line={"color": "#38bdf8", "width": 3},
             fill="tozeroy",
             fillcolor="rgba(56, 189, 248, 0.15)",
         )
@@ -344,15 +345,15 @@ def plot_pr_curve(pr_data: Dict[str, Any]) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.4)",
-        xaxis=dict(range=[0, 1.02]),
-        yaxis=dict(range=[0, 1.05]),
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        xaxis={"range": [0, 1.02]},
+        yaxis={"range": [0, 1.05]},
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     return fig
 
 
-def plot_explained_variance(pca_summary: Dict[str, Any]) -> go.Figure:
+def plot_explained_variance(pca_summary: dict[str, Any]) -> go.Figure:
     """Plot PCA cumulative explained variance."""
     cum_var = pca_summary.get("cumulative_variance_ratios", [])
     exp_var = pca_summary.get("explained_variance_ratios", [])
@@ -375,8 +376,8 @@ def plot_explained_variance(pca_summary: Dict[str, Any]) -> go.Figure:
             y=cum_var,
             mode="lines+markers",
             name="Cumulative Variance",
-            line=dict(color="#38bdf8", width=2),
-            marker=dict(size=5),
+            line={"color": "#38bdf8", "width": 2},
+            marker={"size": 5},
         )
     )
 
@@ -403,8 +404,8 @@ def plot_explained_variance(pca_summary: Dict[str, Any]) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.4)",
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     return fig
 
@@ -426,7 +427,7 @@ def plot_priority_breakdown(df: pd.DataFrame) -> go.Figure:
                 labels=priority_counts.index,
                 values=priority_counts.values,
                 hole=0.55,
-                marker=dict(colors=marker_colors),
+                marker={"colors": marker_colors},
                 textinfo="label+percent",
                 insidetextorientation="radial",
             )
@@ -437,13 +438,13 @@ def plot_priority_breakdown(df: pd.DataFrame) -> go.Figure:
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
         showlegend=False,
     )
     return fig
 
 
-def plot_category_recall(cat_metrics: Dict[str, Dict[str, Any]]) -> go.Figure:
+def plot_category_recall(cat_metrics: dict[str, dict[str, Any]]) -> go.Figure:
     """Plot detection recall across attack categories."""
     categories = list(cat_metrics.keys())
     recalls = [cat_metrics[c]["recall"] * 100 for c in categories]
@@ -466,16 +467,16 @@ def plot_category_recall(cat_metrics: Dict[str, Dict[str, Any]]) -> go.Figure:
         title="<b>Detection Recall Across Attack Categories</b>",
         xaxis_title="Attack Class",
         yaxis_title="Detection Rate (%)",
-        yaxis=dict(range=[0, 105]),
+        yaxis={"range": [0, 105]},
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.4)",
-        margin=dict(l=20, r=20, t=50, b=20),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
     )
     return fig
 
 
-def plot_radar_risk_profile(record: pd.Series, baseline_stats: Optional[Dict[str, Any]] = None) -> go.Figure:
+def plot_radar_risk_profile(record: pd.Series, baseline_stats: dict[str, Any] | None = None) -> go.Figure:
     """Plot polar radar chart showing multi-dimensional risk footprint of a connection."""
     categories = [
         "Source Bytes",
@@ -514,7 +515,7 @@ def plot_radar_risk_profile(record: pd.Series, baseline_stats: Optional[Dict[str
             theta=categories_closed,
             fill="toself",
             name="Normal Baseline",
-            line=dict(color="#10b981", width=1.5, dash="dot"),
+            line={"color": "#10b981", "width": 1.5, "dash": "dot"},
             fillcolor="rgba(16, 185, 129, 0.15)",
         )
     )
@@ -525,22 +526,22 @@ def plot_radar_risk_profile(record: pd.Series, baseline_stats: Optional[Dict[str
             theta=categories_closed,
             fill="toself",
             name="Observed Connection",
-            line=dict(color="#f43f5e", width=2.5),
+            line={"color": "#f43f5e", "width": 2.5},
             fillcolor="rgba(244, 63, 94, 0.25)",
         )
     )
 
     fig.update_layout(
-        polar=dict(
-            radialaxis=dict(visible=True, range=[0, 100], color="#94a3b8", gridcolor="rgba(255,255,255,0.1)"),
-            angularaxis=dict(color="#f1f5f9", gridcolor="rgba(255,255,255,0.1)"),
-            bgcolor="rgba(15,23,42,0.4)",
-        ),
+        polar={
+            "radialaxis": {"visible": True, "range": [0, 100], "color": "#94a3b8", "gridcolor": "rgba(255,255,255,0.1)"},
+            "angularaxis": {"color": "#f1f5f9", "gridcolor": "rgba(255,255,255,0.1)"},
+            "bgcolor": "rgba(15,23,42,0.4)",
+        },
         title="<b>Multi-Dimensional Threat Risk Radar</b>",
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=40, r=40, t=50, b=40),
-        legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
+        margin={"l": 40, "r": 40, "t": 50, "b": 40},
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
     )
     return fig
 
@@ -573,7 +574,7 @@ def plot_protocol_sunburst(df: pd.DataFrame, max_records: int = 1000) -> go.Figu
 
     fig.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=10, r=10, t=50, b=10),
+        margin={"l": 10, "r": 10, "t": 50, "b": 10},
     )
     return fig
 
@@ -603,7 +604,7 @@ def plot_telemetry_flow_timeline(df: pd.DataFrame) -> go.Figure:
                     y=subset["anomaly_score"],
                     mode="markers",
                     name=priority,
-                    marker=dict(color=color, size=7, opacity=0.8),
+                    marker={"color": color, "size": 7, "opacity": 0.8},
                     hovertext=[
                         f"Seq: #{r['connection_seq']}<br>Score: {r['anomaly_score']:.3f}<br>Proto: {r.get('protocol_type', '')}<br>Service: {r.get('service', '')}"
                         for _, r in subset.iterrows()
@@ -619,7 +620,7 @@ def plot_telemetry_flow_timeline(df: pd.DataFrame) -> go.Figure:
             y=plot_df["rolling_score"],
             mode="lines",
             name="10-Session Moving Avg",
-            line=dict(color="#38bdf8", width=2),
+            line={"color": "#38bdf8", "width": 2},
         )
     )
 
@@ -636,11 +637,11 @@ def plot_telemetry_flow_timeline(df: pd.DataFrame) -> go.Figure:
         title="<b>Telemetry Arrival Timeline & Anomaly Score Fluctuation</b>",
         xaxis_title="Packet / Connection Sequence Index",
         yaxis_title="Anomaly Score [0.0 - 1.0]",
-        yaxis=dict(range=[0, 1.05]),
+        yaxis={"range": [0, 1.05]},
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(15,23,42,0.4)",
-        margin=dict(l=20, r=20, t=50, b=20),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin={"l": 20, "r": 20, "t": 50, "b": 20},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1},
     )
     return fig

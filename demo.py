@@ -10,8 +10,8 @@ Walks through the complete workflow:
 """
 
 import logging
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Add project root to sys.path
 ROOT_DIR = Path(__file__).resolve().parent
@@ -19,8 +19,8 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from src.data_loader import load_config
-from src.train import run_training_pipeline
 from src.predict import InferencePipeline
+from src.train import run_training_pipeline
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def main():
 
     if not detector_file.exists():
         print("\n[STEP 1] No existing model found. Running training pipeline...")
-        metadata = run_training_pipeline()
+        run_training_pipeline()
     else:
         print("\n[STEP 1] Found existing trained model. Initializing inference pipeline...")
 
@@ -68,15 +68,6 @@ def main():
         print(results["review_priority"].value_counts().to_string())
 
         print("\n[STEP 4] Top 5 Flagged Security Alerts:")
-        alert_cols = [
-            "review_priority",
-            "anomaly_score",
-            "protocol_type",
-            "service",
-            "flag",
-            "src_bytes",
-            "anomaly_reasons",
-        ]
         alerts = results[results["is_anomaly"] == 1]
         for idx, row in alerts.head(5).iterrows():
             print(f"\nAlert #{idx} [{row['review_priority']}] - Anomaly Score: {row['anomaly_score']:.4f}")

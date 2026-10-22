@@ -7,11 +7,11 @@ firewalls, and SIEM forwarders to evaluate network sessions in real time.
 """
 
 from __future__ import annotations
+
 import logging
-from pathlib import Path
 import sys
-from typing import Dict, List, Optional, Any
-import numpy as np
+from pathlib import Path
+
 import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
@@ -33,7 +33,7 @@ app = FastAPI(
 )
 
 # Global pipeline instance
-_pipeline: Optional[InferencePipeline] = None
+_pipeline: InferencePipeline | None = None
 
 
 def get_pipeline() -> InferencePipeline:
@@ -63,7 +63,7 @@ class NetworkConnectionPayload(BaseModel):
 
 
 class BatchScoringPayload(BaseModel):
-    records: List[NetworkConnectionPayload] = Field(..., description="List of network connection records")
+    records: list[NetworkConnectionPayload] = Field(..., description="List of network connection records")
 
 
 class AnomalyScoreResponse(BaseModel):
@@ -72,15 +72,15 @@ class AnomalyScoreResponse(BaseModel):
     anomaly_score: float
     review_priority: str
     anomaly_reasons: str
-    pca_component_1: Optional[float] = None
-    pca_component_2: Optional[float] = None
+    pca_component_1: float | None = None
+    pca_component_2: float | None = None
 
 
 class BatchScoreResponse(BaseModel):
     total_records: int
     anomalies_detected: int
     anomaly_rate_pct: float
-    results: List[AnomalyScoreResponse]
+    results: list[AnomalyScoreResponse]
 
 
 @app.get("/")
@@ -139,7 +139,7 @@ def score_single_connection(payload: NetworkConnectionPayload):
         )
     except Exception as e:
         logger.error("Scoring error: %s", e)
-        raise HTTPException(status_code=500, detail=f"Inference error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Inference error: {e!s}") from e
 
 
 @app.post("/api/v1/score/batch", response_model=BatchScoreResponse)
@@ -181,7 +181,7 @@ def score_batch_connections(payload: BatchScoringPayload):
         )
     except Exception as e:
         logger.error("Batch scoring error: %s", e)
-        raise HTTPException(status_code=500, detail=f"Batch inference error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Batch inference error: {e!s}") from e
 
 
 if __name__ == "__main__":

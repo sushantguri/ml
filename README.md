@@ -25,7 +25,7 @@ This project implements an **unsupervised anomaly detection system** that learns
 
 ---
 
-## 2. Key Features
+## 2. Features
 
 - **Unsupervised Anomaly Engine:** Scikit-Learn `IsolationForest` ensemble with subsampling to prevent masking and swamping.
 - **Leakage-Free Preprocessing:** `ColumnTransformer` with `StandardScaler` for continuous numericals and `OneHotEncoder(handle_unknown='ignore')` for symbolic protocols.

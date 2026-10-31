@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-1.5+-orange.svg)](https://scikit-learn.org/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.35+-FF4B4B.svg)](https://streamlit.io/)
-[![Tests Passing](https://img.shields.io/badge/tests-39%20passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-48%20passed-brightgreen.svg)](tests/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
 
 An enterprise-grade, unsupervised machine learning system for detecting cyber threats, zero-day intrusions, and abnormal network behaviors in cyber-physical and enterprise IT networks. Built using **Isolation Forests**, **Principal Component Analysis (PCA)**, **Scikit-Learn Pipelines**, and an interactive **Streamlit Security Operations Center (SOC) Dashboard**.
@@ -210,6 +210,16 @@ streamlit run app.py
 ```
 Open your browser at `http://localhost:8501`.
 
+### Step 6: Production Docker Deployment (Optional)
+Deploy the full stack (Streamlit SOC Dashboard on port 8501 + FastAPI scoring microservice on port 8000) using Docker Compose:
+```bash
+docker compose up -d --build
+```
+Verify container health:
+```bash
+docker compose ps
+```
+
 ---
 
 ## 7. How to Analyze a New CSV File
@@ -222,13 +232,24 @@ Open your browser at `http://localhost:8501`.
 5. Click **"🚀 Analyze Traffic Records Now"**.
 6. Inspect flagged anomalies, filter by priority, explore interactive PCA projections, and download the enriched results CSV.
 
-### Method B: Via Python CLI
-```python
-from src.predict import InferencePipeline
+### Method B: Via Production Command-Line Interface (CLI)
+The project provides a dedicated CLI tool (`src/cli.py`) for automated scoring and report compilation:
 
-pipeline = InferencePipeline()
-results_df = pipeline.predict_csv("data/samples/sample_mixed_traffic.csv", output_csv_path="analyzed_output.csv")
-print(results_df[["protocol_type", "service", "anomaly_prediction", "anomaly_score", "review_priority", "anomaly_reasons"]].head())
+```bash
+# 1. Batch score network traffic and view summary
+python -m src.cli score -i data/samples/sample_attack_traffic.csv
+
+# 2. Score and export enriched CSV with scores and SOC priorities
+python -m src.cli score -i data/samples/sample_mixed_traffic.csv -o analyzed_output.csv
+
+# 3. Output batch results in machine-readable JSON
+python -m src.cli score -i data/samples/sample_attack_traffic.csv --json
+
+# 4. Generate automated Markdown Incident Dossiers
+python -m src.cli report -i data/samples/sample_attack_traffic.csv -o reports/incident_investigation.md
+
+# 5. Inspect active model parameters and benchmark metrics
+python -m src.cli info
 ```
 
 ### Method C: Via Real-Time REST API Microservice
@@ -236,7 +257,9 @@ Start the high-throughput scoring server:
 ```bash
 uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
-Interactive Swagger docs available at: `http://localhost:8000/docs`
+- Interactive Swagger docs: `http://localhost:8000/docs`
+- Prometheus metrics endpoint: `http://localhost:8000/api/v1/metrics`
+- JSON operational telemetry: `http://localhost:8000/api/v1/metrics/json`
 
 #### Score a Single Connection via curl:
 ```bash
@@ -262,6 +285,27 @@ curl -X POST "http://localhost:8000/api/v1/score" \
   "pca_component_1": 2.4512,
   "pca_component_2": 1.1094
 }
+```
+
+#### Scrape Prometheus Telemetry Metrics:
+```bash
+curl "http://localhost:8000/api/v1/metrics"
+```
+**Prometheus Output Sample:**
+```text
+# HELP ml_anomaly_service_uptime_seconds Total runtime of the API service in seconds
+# TYPE ml_anomaly_service_uptime_seconds gauge
+ml_anomaly_service_uptime_seconds 142.53
+# HELP ml_anomaly_scoring_requests_total Total number of scoring HTTP requests received
+# TYPE ml_anomaly_scoring_requests_total counter
+ml_anomaly_scoring_requests_total 42
+# HELP ml_anomaly_detections_total Total anomalous network sessions flagged
+# TYPE ml_anomaly_detections_total counter
+ml_anomaly_detections_total 18
+# HELP ml_anomaly_triage_priority_total Breakdown of sessions by SOC triage priority
+# TYPE ml_anomaly_triage_priority_total counter
+ml_anomaly_triage_priority_total{priority="CRITICAL"} 8
+ml_anomaly_triage_priority_total{priority="HIGH"} 10
 ```
 
 ---

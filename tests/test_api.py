@@ -113,3 +113,27 @@ def test_score_batch_connections():
     assert data["total_records"] == 2
     assert len(data["results"]) == 2
     assert "anomalies_detected" in data
+
+
+def test_metrics_prometheus_endpoint():
+    """Test Prometheus format metrics exposition endpoint."""
+    response = client.get("/api/v1/metrics")
+    assert response.status_code == 200
+    assert "text/plain" in response.headers.get("content-type", "")
+    content = response.text
+    assert "ml_anomaly_service_uptime_seconds" in content
+    assert "ml_anomaly_scoring_requests_total" in content
+    assert "ml_anomaly_sessions_scored_total" in content
+    assert "ml_anomaly_triage_priority_total" in content
+
+
+def test_metrics_json_endpoint():
+    """Test JSON format operational metrics endpoint."""
+    response = client.get("/api/v1/metrics/json")
+    assert response.status_code == 200
+    data = response.json()
+    assert "uptime_seconds" in data
+    assert "total_requests" in data
+    assert "sessions_scored" in data
+    assert "priority_breakdown" in data
+    assert data["total_requests"] >= 1
